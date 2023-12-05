@@ -178,7 +178,7 @@ while max_diff > need_e:#delta_e > need_e:
 
 draw(x, u_dynamic, 'dyn')
 draw(log_h, log_e, 'err')
-print('Order:', (log_e[0] - log_e[1])/(log_h[0] - log_h[1]))
+print('Порядок аппроксимации:', (log_e[0] - log_e[1])/(log_h[0] - log_h[1]))
 # print(len(u_dynamic), len(u_dynamic[-1]))
 # print("res progonka:", u_dynamic[-1][::(len(u_dynamic[-1]) - 1)//(len(x[0])-1)])
 
