@@ -8,6 +8,7 @@ from init_conditions_hannah import *
 # from init_conditions_1 import *
 # from init_conditions_2 import *
 # from  init_conditions_3 import *
+# from init_conditions_5 import *
 
 
 def k_const(x):
@@ -22,10 +23,13 @@ def f_const(x):
     return f(0.5)
 
 
-def draw(x, y, u_c, u_d):
-    plt.plot(x, y, label='y', color = 'red')
-    plt.plot(x, u_c, label='u const', color = 'green')
-    plt.plot(x, u_d, label='u dynamic', color = 'blue')
+def draw(x, y_s, who):
+    if who == "dyn":
+        for i in range(len(y_s)):
+            plt.plot(x[i], y_s[i], label='y'+str(10*2**i+1))
+    else:
+        plt.plot(x[0], y_s[0], label='analytic')
+        plt.plot(x[0], y_s[1], label='const progonka')
     plt.xlabel('x')
     plt.ylabel('y')
     plt.grid(True)
@@ -34,7 +38,7 @@ def draw(x, y, u_c, u_d):
 
 
 # модельная
-def analytics():
+def analytics(x):
     c1 = ((k(x_num) * lambda2 + delta2) * (delta1 * f(x_num) - eps1 * q(x_num)) * math.exp(lambda2) + (
             k(x_num) * lambda2 - delta1) * (delta2 * f(x_num) - eps2 * q(x_num))) / \
          (q(x_num) * ((k(x_num) * lambda1 - delta1) * (k(x_num) * lambda2 + delta2) * math.exp(lambda2) - (
@@ -59,6 +63,7 @@ def analytics():
     # print(c1, c2)
     for i in x:
         # y.append(c1 * math.exp(lambda1 * i) + c2 * math.exp(lambda2 * i) + f(i)/q(i))
+        print(i)
         y.append(c1 * np.exp(lambda1 * i) + c2 * np.exp(lambda2 * i) + f(x_num) / q(x_num))
         # y_a.append(c1_a * np.exp(lambda1 * i) + c2_a * np.exp(lambda2 * i) + f(x_num)/q(x_num))
 
@@ -67,7 +72,7 @@ def analytics():
 
 
 # прогонки
-def method_progonki(k, q, f):
+def method_progonki(k, q, f, x):
     # массивчики коэффициентов
     a = [0] * num_of_points
     b = [0] * num_of_points
@@ -99,12 +104,12 @@ def method_progonki(k, q, f):
     d[-1] = -eps2 * h
     u[-1] = (d[-1] - c[-1] * beta[-2]) / (b[-1] + c[-1] * alpha[-2])
 
-    print("a:", a)
-    print("b:", b)
-    print("c:", c)
-    print("d:", d)
-    print("alpha:", alpha)
-    print("beta:", beta)
+    # print("a:", a)
+    # print("b:", b)
+    # print("c:", c)
+    # print("d:", d)
+    # print("alpha:", alpha)
+    # print("beta:", beta)
 
     for i in range(num_of_points - 2, -1, -1):
         u[i] = alpha[i] * u[i + 1] + beta[i]
@@ -121,16 +126,45 @@ x_num = 0.5
 lambda1 = math.sqrt(q(x_num) / k(x_num))
 lambda2 = -lambda1
 
-x = np.linspace(x_start, x_finish, num_of_points)
+x = []
+x.append(list(np.linspace(x_start, x_finish, num_of_points)))
 
-y = analytics()
-u_const = method_progonki(k_const, q_const, f_const)
-u_dynamic = method_progonki(k, q, f)
+y = analytics(x[0])
+u_const = method_progonki(k_const, q_const, f_const, x[0])
 
-draw(x, y, u_const, u_dynamic)
+
+array = []
+array.append(y)
+array.append(u_const)
+
+draw(x, array, 'const')
+
 
 print()
 print("res model:", y)
 print("res progonka const:", u_const)
-print("res progonka dynamic:", u_dynamic)
+
+
+u_dynamic = []
+delta_e = 1000
+need_e = 10**(-4)
+h_prev = 1
+while delta_e > need_e:
+    new_u = method_progonki(k, q, f, x[len(u_dynamic)])
+    u_dynamic.append(new_u)
+    max_diff = 1
+    if len(u_dynamic) > 1:
+        for i in range(len(u_dynamic[-2])):
+            max_diff = max(max_diff, abs(u_dynamic[-2][i] - u_dynamic[-1][2*i]))
+        delta_e = max_diff*h_prev
+        # delta_e = abs(math.log(max_diff)*math.log(h_prev)
+    num_of_points = (num_of_points - 1) * 2 + 1
+    x_new = np.linspace(x_start, x_finish, num_of_points)
+    x.append(x_new)
+    h_prev = h
+    h = (x_finish - x_start) / (num_of_points - 1)
+
+draw(x, u_dynamic, 'dyn')
+print(len(u_dynamic), len(u_dynamic[-1]))
+print("res progonka:", u_dynamic[-1][::(len(u_dynamic[-1]) - 1)//(len(x[0])-1)])
 

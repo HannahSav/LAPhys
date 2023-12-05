@@ -1,2 +1,2 @@
-![img](img.png)
-![img](img_1.png)
+![img](resources/img2.png)
+![img](resources/img_3.png)
