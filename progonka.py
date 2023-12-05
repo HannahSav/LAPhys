@@ -27,11 +27,17 @@ def draw(x, y_s, who):
     if who == "dyn":
         for i in range(len(y_s)):
             plt.plot(x[i], y_s[i], label='y'+str(10*2**i+1))
-    else:
+            plt.xlabel('x')
+            plt.ylabel('y')
+    elif who == 'const':
         plt.plot(x[0], y_s[0], label='analytic')
         plt.plot(x[0], y_s[1], label='const progonka')
-    plt.xlabel('x')
-    plt.ylabel('y')
+        plt.xlabel('x')
+        plt.ylabel('y')
+    else:
+        plt.plot(x, y_s, label = 'log(err)')
+        plt.xlabel('log(h)')
+        plt.ylabel('log(err)')
     plt.grid(True)
     plt.legend()
     plt.show()
@@ -63,7 +69,7 @@ def analytics(x):
     # print(c1, c2)
     for i in x:
         # y.append(c1 * math.exp(lambda1 * i) + c2 * math.exp(lambda2 * i) + f(i)/q(i))
-        print(i)
+        #print(i)
         y.append(c1 * np.exp(lambda1 * i) + c2 * np.exp(lambda2 * i) + f(x_num) / q(x_num))
         # y_a.append(c1_a * np.exp(lambda1 * i) + c2_a * np.exp(lambda2 * i) + f(x_num)/q(x_num))
 
@@ -119,7 +125,7 @@ def method_progonki(k, q, f, x):
 
 x_start = 0
 x_finish = 1
-num_of_points = 11
+num_of_points = 10+1
 h = (x_finish - x_start) / (num_of_points - 1)
 
 x_num = 0.5
@@ -140,24 +146,30 @@ array.append(u_const)
 draw(x, array, 'const')
 
 
-print()
-print("res model:", y)
-print("res progonka const:", u_const)
+# print()
+# print("res model:", y)
+# print("res progonka const:", u_const)
 
 
 u_dynamic = []
 delta_e = 1000
 need_e = 10**(-4)
 h_prev = 1
-while delta_e > need_e:
+max_diff = 100
+log_e = []
+log_h = []
+while max_diff > need_e:#delta_e > need_e:
     new_u = method_progonki(k, q, f, x[len(u_dynamic)])
     u_dynamic.append(new_u)
-    max_diff = 1
     if len(u_dynamic) > 1:
-        for i in range(len(u_dynamic[-2])):
+        max_diff = 0
+        for i in range(0, len(u_dynamic[-2])):#(len(u_dynamic[-2]) - 1)//(10)):
             max_diff = max(max_diff, abs(u_dynamic[-2][i] - u_dynamic[-1][2*i]))
-        delta_e = max_diff*h_prev
-        # delta_e = abs(math.log(max_diff)*math.log(h_prev)
+        # delta_e = max_diff*h_prev
+        # delta_e = math.log(max_diff)
+        # print(max_diff, delta_e)
+        log_h.append(math.log(h_prev))
+        log_e.append(math.log(max_diff))
     num_of_points = (num_of_points - 1) * 2 + 1
     x_new = np.linspace(x_start, x_finish, num_of_points)
     x.append(x_new)
@@ -165,6 +177,8 @@ while delta_e > need_e:
     h = (x_finish - x_start) / (num_of_points - 1)
 
 draw(x, u_dynamic, 'dyn')
-print(len(u_dynamic), len(u_dynamic[-1]))
-print("res progonka:", u_dynamic[-1][::(len(u_dynamic[-1]) - 1)//(len(x[0])-1)])
+draw(log_h, log_e, 'err')
+print('Order:', (log_e[0] - log_e[1])/(log_h[0] - log_h[1]))
+# print(len(u_dynamic), len(u_dynamic[-1]))
+# print("res progonka:", u_dynamic[-1][::(len(u_dynamic[-1]) - 1)//(len(x[0])-1)])
 
