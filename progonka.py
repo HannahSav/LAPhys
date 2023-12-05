@@ -73,7 +73,7 @@ def analytics(x):
         y.append(c1 * np.exp(lambda1 * i) + c2 * np.exp(lambda2 * i) + f(x_num) / q(x_num))
         # y_a.append(c1_a * np.exp(lambda1 * i) + c2_a * np.exp(lambda2 * i) + f(x_num)/q(x_num))
 
-    print('Значения для модельной задачи:\nС1 = {}, C2 = {}'.format(c1, c2))
+    print('Значения С для аналитики:\nС1 = {}, C2 = {}'.format(c1, c2))
     return y
 
 
