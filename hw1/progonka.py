@@ -2,10 +2,10 @@
 import math
 import numpy as np
 import matplotlib.pyplot as plt
-from init_conditions_hannah import *
+# from init_conditions_hannah import *
 # from init_conditions_nast import *
 # from init_conditions_alin import *
-# from init_conditions_1 import *
+from init_conditions_1 import *
 # from init_conditions_2 import *
 # from  init_conditions_3 import *
 # from init_conditions_5 import *
@@ -125,7 +125,7 @@ def method_progonki(k, q, f, x):
 
 x_start = 0
 x_finish = 1
-num_of_points = 10+1
+num_of_points = 11
 h = (x_finish - x_start) / (num_of_points - 1)
 
 x_num = 0.5
