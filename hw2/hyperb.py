@@ -30,6 +30,33 @@ def show_graph(args):
     return
 
 
+def show_graph_pl(x, t, u):
+    #отрисовка u(x)
+    plt.figure(figsize=(8, 6))
+    u_new = u
+    print(x.shape, u_new[0].shape)
+    for i in range((t).shape[0]):
+        plt.plot(x, u_new[i], label=f'u(x) при t = {int(i*tau*100)/100}')
+    plt.xlabel('x')
+    plt.ylabel('u')
+    plt.legend()
+    plt.title('Аналитическое решение u(x)')
+    plt.show()
+
+    # отрисовка u(t)
+    #plt.figure(figsize=(8, 6))
+    u_new = u.transpose()
+    print('asd', t.shape, u_new[0].shape)
+    for i in range(x.shape[0]):
+        plt.plot(t, u_new[i], label=f'u(t) при x = {int(i*h/100)*100}')
+    plt.xlabel('t')
+    plt.ylabel('u')
+    plt.legend()
+    plt.title('Аналитическое решение u(t)')
+    plt.show()
+    return
+
+
 def analytics(x, t):
     x_size = x.shape[0]
     t_size = t.shape[0]
@@ -75,10 +102,32 @@ X_a, T_a, u_a = analytics(x, t)
 u_p = progonka(x, t, h, tau)
 u_p = u_p.transpose()
 
-# print(X)
-# print(T)
-# print(u)
 
-show_graph([[X_a, T_a, u_a]])
-show_graph([[X_a, T_a, u_p]])
-show_graph([[X_a, T_a, u_a], [X_a, T_a, u_p]])
+
+
+
+
+
+
+h_kol1 = 161
+t_kol1 = (h_kol1 - 1) * 2 - 3
+
+h1 = 1/(h_kol1 - 1)
+tau1 = 1/(t_kol1 - 1)
+x1 = np.linspace(0, 1, h_kol1)
+t1 = np.linspace(0, 1, t_kol1)
+X_a1, T_a1, u_a1 = analytics(x1, t1)
+
+
+u_p1 = progonka(x1, t1, h1, tau1)
+u_p1 = u_p1.transpose()
+
+
+
+
+print(u_p.shape)
+
+# show_graph([[X_a, T_a, u_a]])
+# show_graph([[X_a, T_a, u_p]])
+show_graph([[X_a, T_a, u_p], [X_a1, T_a1, u_p1]])
+# show_graph_pl(x, t, u_a)
