@@ -10,22 +10,16 @@ def u_analytic(x, t):
     return np.log(1 + (t-x) ** 2) + np.sin(x)
 
 
-# из устойчивости
-h_kol = 21
-t_kol = (h_kol - 1) * 2 - 3
-
-h = 1/(h_kol - 1)
-tau = 1/(t_kol - 1)
-
-
-def show_graph(args):
+def show_graph(args, h, tau):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection = '3d')
-    for i in args:
-        ax.plot_surface(i[0], i[1], i[2])
+    ax.plot_surface(args[0][0], args[0][1], args[0][2], label='Аналитическое решение')
+    ax.plot_surface(args[1][0], args[1][1], args[1][2], label='Рассчетное решение')
     ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_zlabel('Z')
+    ax.set_ylabel('T')
+    ax.set_zlabel('U')
+    plt.legend()
+    plt.title(f'U(x, t) для различного шагов h={h} и tau={tau}')
     plt.show()
     return
 
@@ -57,19 +51,32 @@ def show_graph_pl(x, t, u):
     return
 
 
+def show_last_layer(x_array, y1_array, y2_array, h):
+    for i in range(len(x_array)):
+        print(len(x_array))
+        plt.plot(x_array[i], y1_array[i], label=f'U_analytics(x, t) при h={h[i]}')
+        plt.plot(x_array[i], y2_array[i], label= f'U_progonka(x, t) при h={h[i]}')
+    plt.xlabel('x')
+    plt.ylabel('U(x, t=1)')
+    plt.legend()
+    plt.title('Слои аналитического решения и рассчетной сетки для U(x, t) при t = 1 для различного шага h')
+    plt.show()
+    return
+
+
+def show_log(x, y):
+    plt.plot(x, y, marker='o')
+    plt.xlabel('log(h)')
+    plt.ylabel('log(diff)')
+    plt.title('Зависимость log(diff) от log(h)')
+    plt.show()
+    return
+
+
 def analytics(x, t):
-    x_size = x.shape[0]
-    t_size = t.shape[0]
 
     X, T = np.meshgrid(x, t)
     u = u_analytic(X, T)
-
-    # еще края из аналитики
-    # # при t = 0
-    # for l in x_size:
-    #
-    # # при x = 0
-    # for n in t_size:
 
     return X, T, u
 
@@ -82,7 +89,8 @@ def progonka(x, t, h, tau):
     # начальные условия u_n_0 и u_n_1
     for n in range(t_size):
         u[0, n] = np.log(1 + (t[n]) ** 2)
-        u[1, n] = (1 + t[n]) ** 2 + np.cos(1) + h * ((-2 * t[n])/(1 + t[n] ** 2) + np.cos(x[0])) - h ** 2 / 2 * (2 * (t[n] ** 2 - 1)/(1 + t[n] ** 2) ** 2) - np.sin(x[0])
+        u[1, n] = u[0, n] + h * (np.cos(x[0]) - 2 * t[n] / (1 + t[n] ** 2)) + h ** 2 / 2 * (- np.sin(x[0]) + 2 * (1 - t[n]) / ((1 + t[n] ** 2) ** 2) - np.sin(x[0]))
+
     # начальное условие u_0_l
     for l in range(x_size):
         u[l, 0] = np.log(1 + x[l] ** 2) + np.sin(x[l])
@@ -94,40 +102,51 @@ def progonka(x, t, h, tau):
             u[l, n+1] = u[l, n] + sigma/2 * (-u[l-2, n] + 4 * u[l-1, n] - 3 * u[l, n]) + (sigma ** 2)/2 * (u[l-2, n] - 2 * u[l-1, n] + u[l, n]) + tau * np.cos(x[l]) + (tau  ** 2)/ 2 * np.sin(x[l])
     return u
 
-
-x = np.linspace(0, 1, h_kol)
-t = np.linspace(0, 1, t_kol)
-X_a, T_a, u_a = analytics(x, t)
-
-u_p = progonka(x, t, h, tau)
-u_p = u_p.transpose()
-
+def count_t_h(h_kol):
+    h = 1 / (h_kol - 1)
+    tau = (2 * h) * 0.95
+    t_kol = int(1 / tau) + 1
+    tau = 1 / (t_kol - 1)
+    return t_kol, h, tau
 
 
+def max_diff_log(u_a, u_p):
+    diff = 0
+    for i in range(len(u_a)):
+        diff = max(diff, abs(u_a[i] - u_p[i]))
+    return np.log(diff)
 
+h_kol = 3
+t_kol, h, tau = count_t_h(h_kol)
 
+u_p_ending = []
+u_a_ending = []
+x_ending = []
+h_array = []
+diff_log = []
+h_log = []
 
+for i in range(5):
+    x = np.linspace(0, 1, h_kol)
+    t = np.linspace(0, 1, t_kol)
+    X_a, T_a, u_a = analytics(x, t)
+    u_p = progonka(x, t, h, tau)
+    u_p = u_p.transpose()
 
+    u_a_ending.append(u_a[-1].tolist())
+    u_p_ending.append(u_p[-1].tolist())
+    x_ending.append(x.tolist())
+    h_array.append(h)
+    print(len(x_ending[-1]))
 
-h_kol1 = 161
-t_kol1 = (h_kol1 - 1) * 2 - 3
+    diff_log.append(max_diff_log(u_a_ending[-1], u_p_ending[-1]))
+    h_log.append(np.log(h))
 
-h1 = 1/(h_kol1 - 1)
-tau1 = 1/(t_kol1 - 1)
-x1 = np.linspace(0, 1, h_kol1)
-t1 = np.linspace(0, 1, t_kol1)
-X_a1, T_a1, u_a1 = analytics(x1, t1)
+    show_graph([[X_a, T_a, u_a], [X_a, T_a, u_p]], h, tau)
+    show_last_layer(x_ending, u_a_ending, u_p_ending, h_array)
 
+    h_kol = (h_kol - 1) * 2 + 1
+    t_kol, h, tau = count_t_h(h_kol)
 
-u_p1 = progonka(x1, t1, h1, tau1)
-u_p1 = u_p1.transpose()
+show_log(h_log, diff_log)
 
-
-
-
-print(u_p.shape)
-
-# show_graph([[X_a, T_a, u_a]])
-# show_graph([[X_a, T_a, u_p]])
-show_graph([[X_a, T_a, u_p], [X_a1, T_a1, u_p1]])
-# show_graph_pl(x, t, u_a)
