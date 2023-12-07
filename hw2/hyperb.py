@@ -28,7 +28,6 @@ def show_graph_pl(x, t, u):
     #отрисовка u(x)
     plt.figure(figsize=(8, 6))
     u_new = u
-    print(x.shape, u_new[0].shape)
     for i in range((t).shape[0]):
         plt.plot(x, u_new[i], label=f'u(x) при t = {int(i*tau*100)/100}')
     plt.xlabel('x')
@@ -40,7 +39,6 @@ def show_graph_pl(x, t, u):
     # отрисовка u(t)
     #plt.figure(figsize=(8, 6))
     u_new = u.transpose()
-    print('asd', t.shape, u_new[0].shape)
     for i in range(x.shape[0]):
         plt.plot(t, u_new[i], label=f'u(t) при x = {int(i*h/100)*100}')
     plt.xlabel('t')
@@ -53,7 +51,6 @@ def show_graph_pl(x, t, u):
 
 def show_last_layer(x_array, y1_array, y2_array, h):
     for i in range(len(x_array)):
-        print(len(x_array))
         plt.plot(x_array[i], y1_array[i], label=f'U_analytics(x, t) при h={h[i]}')
         plt.plot(x_array[i], y2_array[i], label= f'U_progonka(x, t) при h={h[i]}')
     plt.xlabel('x')
@@ -137,7 +134,6 @@ for i in range(5):
     u_p_ending.append(u_p[-1].tolist())
     x_ending.append(x.tolist())
     h_array.append(h)
-    print(len(x_ending[-1]))
 
     diff_log.append(max_diff_log(u_a_ending[-1], u_p_ending[-1]))
     h_log.append(np.log(h))
