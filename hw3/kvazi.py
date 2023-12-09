@@ -3,8 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # из расчетной сетки
-NU = 2
-C0 = 5
+NU = 1/3
+C0 = 15
 C1 = 1
 
 EPS = 10**(-4)
@@ -23,7 +23,7 @@ def show_graph(x_a, y_a, z_a, z_p, h, tau):
     ax.set_ylabel('T')
     ax.set_zlabel('U')
     plt.legend()
-    plt.title(f'U(x, t) для различного шагов h={int(h*10000)/10000} и tau={int(tau*10000)/10000}')
+    plt.title(f'U(x, t) для h={int(h*10000)/10000} и tau={int(tau*10000)/10000}')
     plt.show()
     return
 
@@ -128,7 +128,7 @@ log_diff = []
 log_h = []
 
 for i in range(5):
-    h_kol = 2 * 2 ** i + 1
+    h_kol = 10 * 2 ** i + 1
     t_kol = h_kol + 2
     h = 1/(h_kol - 1)
     tau = 1/(t_kol - 1)

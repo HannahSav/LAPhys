@@ -1,4 +1,7 @@
-![img](resources/task.png)
+![img](resources/taks1.png)
+![img](resources/task2.png)
+![img](resources/var.png)
+----------------------------------------
 ![img](resources/img_0n.png)
 ![img](resources/img_1n.png)
 ![img](resources/img_2n.png)

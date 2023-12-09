@@ -1,5 +1,9 @@
 ### Красота, да и только:  
 
+![img](resources/task.png)
+![img](resources/var.png)
+
+---------------------------------------------
 ![img](resources/img_3.png)
 ![img](resources/img_7.png)
 ![img](resources/img_8.png)
