@@ -23,13 +23,12 @@ def show_graph(x_a, y_a, z_a, z_p, h, tau):
     ax.set_ylabel('T')
     ax.set_zlabel('U')
     plt.legend()
-    plt.title(f'U(x, t) для различного шагов h={h} и tau={tau}')
+    plt.title(f'U(x, t) для различного шагов h={int(h*10000)/10000} и tau={int(tau*10000)/10000}')
     plt.show()
     return
 
 
 def show_s_res(x, ys, u_a):
-    # print("YSSS", ys)
     for i in range(len(ys)):
         plt.plot(x[i].tolist(), ys[i].tolist(), label=f'u_p, step={2*2**i+1}')
     plt.xlabel('x')
@@ -63,19 +62,17 @@ def count_s(x_size, tau, h, prev_layer, s_prev, first_elem, last_elem):
     for l in range(1, x_size - 1):
         k1[l] = (s_prev[l+1] ** NU + s_prev[l] ** NU) / (2 * h ** 2)
         k2[l] = (s_prev[l] ** NU + s_prev[l-1] ** NU) / (2 * h ** 2)
-    c = -k1
+    a = -k1
     b = 1/tau + k1 + k2
-    a = -k2
+    c = -k2
     d = prev_layer/tau
-    # print("K1, K2", k1, k2)
-    # print("ABCD", a, b, c, d)
 
     alpha = np.zeros((x_size))
     beta = np.zeros((x_size))
     alpha[0] = 0
     beta[0] = first_elem
-    alpha[-1] = 0
-    beta[-1] = last_elem
+    # alpha[-1] = 0
+    # beta[-1] = last_elem
     for i in range(1, x_size):
         alpha[i] = -a[i] / (b[i] + c[i] * alpha[i - 1])
         beta[i] = (d[i] - c[i] * beta[i - 1]) / (b[i] + c[i] * alpha[i - 1])
@@ -130,7 +127,7 @@ x_s = []
 log_diff = []
 log_h = []
 
-for i in range(7):
+for i in range(5):
     h_kol = 2 * 2 ** i + 1
     t_kol = h_kol + 2
     h = 1/(h_kol - 1)
