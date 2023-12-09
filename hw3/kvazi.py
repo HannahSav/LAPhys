@@ -28,15 +28,25 @@ def show_graph(x_a, y_a, z_a, z_p, h, tau):
     return
 
 
-def show_s_res(x, ys, step, u_a):
-    print("YSSS", ys)
+def show_s_res(x, ys, u_a):
+    # print("YSSS", ys)
     for i in range(len(ys)):
-        plt.plot(x, ys[i], label=f's_{i}')
-        plt.xlabel('x')
-    plt.plot(x, u_a, label=f'u_a')
-    plt.ylabel('S_i')
+        plt.plot(x[i].tolist(), ys[i].tolist(), label=f'u_p, step={2*2**i+1}')
+    plt.xlabel('x')
+    plt.plot(x[-1], u_a, label=f'u_a')
+    plt.ylabel('U(x, 1)')
     plt.legend()
-    plt.title(f'Слои аналитического решения S для n = {step}')
+    plt.title(f'Последний слои рассчетного решения ')
+    plt.show()
+    return
+
+
+def show_log(x, y):
+    plt.plot(x, y, marker='o')
+    plt.xlabel('log(h)')
+    plt.ylabel('log(diff)')
+    plt.grid()
+    plt.title('Зависимость log(diff) от log(h)')
     plt.show()
     return
 
@@ -51,14 +61,14 @@ def count_s(x_size, tau, h, prev_layer, s_prev, first_elem, last_elem):
     k1 = np.zeros((x_size))
     k2 = np.zeros((x_size))
     for l in range(1, x_size - 1):
-        k1[l] = (s_prev[l+1] ** NU + s_prev[l] ** NU) / 2 * h ** 2
-        k2[l] = (s_prev[l] ** NU + s_prev[l-1] ** NU) / 2 * h ** 2
-    c = k1
-    b = -1/tau - k1 - k2
-    a = k2
-    d = -prev_layer/tau
-    print("K1, K2", k1, k2)
-    print("ABCD", a, b, c, d)
+        k1[l] = (s_prev[l+1] ** NU + s_prev[l] ** NU) / (2 * h ** 2)
+        k2[l] = (s_prev[l] ** NU + s_prev[l-1] ** NU) / (2 * h ** 2)
+    c = -k1
+    b = 1/tau + k1 + k2
+    a = -k2
+    d = prev_layer/tau
+    # print("K1, K2", k1, k2)
+    # print("ABCD", a, b, c, d)
 
     alpha = np.zeros((x_size))
     beta = np.zeros((x_size))
@@ -66,17 +76,14 @@ def count_s(x_size, tau, h, prev_layer, s_prev, first_elem, last_elem):
     beta[0] = first_elem
     alpha[-1] = 0
     beta[-1] = last_elem
-    for i in range(1, x_size - 1):
+    for i in range(1, x_size):
         alpha[i] = -a[i] / (b[i] + c[i] * alpha[i - 1])
         beta[i] = (d[i] - c[i] * beta[i - 1]) / (b[i] + c[i] * alpha[i - 1])
 
     s = np.zeros((x_size))
-    # print(s.size)
     s[-1] = last_elem
-    #s[0] = first_elem
     for i in range(x_size - 2, -1, -1):
         s[i] = alpha[i] * s[i + 1] + beta[i]
-        print("i, s:", i, s[i])
     return s
 
 
@@ -92,14 +99,9 @@ def progonka(x, t, h, tau, u_a):
     for n in range(t_size):
         u[0, n] = C1 ** (2 / NU) * (C0 - 2 * (2 + NU) * t[n] / NU) ** (-1/NU)
         u[-1, n] = (1 + C1) ** (2 / NU) * (C0 - 2 * (2 + NU) * t[n] / NU) ** (-1/NU)
-    # print(u)
-    print("T, XXXXX:", t_size, x_size)
-    print(u)
 
     u = u.transpose()
 
-    print("T, XXXXX:", t_size, x_size)
-    print(u)
     for now_layer in range(1, t_size):
         s_res = u[now_layer - 1] # в начале одно и то же
         s_res_arr = []
@@ -108,11 +110,7 @@ def progonka(x, t, h, tau, u_a):
         s_res_arr.append(s_res_new)
         s_diff = abs(s_res_new - s_res)
         s_diff_otn = s_diff / abs(s_res)
-        # s_diff_otn = np.zeros((x_size))
-        # for i in range(s_diff_otn.size):
-        #     s_diff_otn[i] = 1
         ITER = 0
-        # print(s_diff_otn, max(s_diff_otn))
         s_res = s_res_new
 
         while max(s_diff_otn) > EPS:
@@ -122,25 +120,34 @@ def progonka(x, t, h, tau, u_a):
             s_diff_otn = s_diff / s_res
             s_res = s_res_new
             s_res_arr.append(s_res)
-            #print(s_diff_otn, max(s_diff_otn))
         u[now_layer] = s_res
-        show_s_res(x, s_res_arr, now_layer, u_a[now_layer])
-        print(s_diff_otn, max(s_diff_otn))
-        print("s_res", s_res)
-        print('now_la = ', now_layer, 'inters = ', ITER)
-    print(u)
+        # show_s_res(x, s_res_arr, now_layer, u_a[now_layer])
     return u
 
 
-h_kol = 7
-t_kol = h_kol + 2
-h = 1/(h_kol - 1)
-tau = 1/(t_kol - 1)
+u_last_layer_p = []
+x_s = []
+log_diff = []
+log_h = []
 
-x = np.linspace(0, 1, h_kol)
-t = np.linspace(0, 1, t_kol)
-X_a, T_a, u_a = analytics(x, t)
+for i in range(7):
+    h_kol = 2 * 2 ** i + 1
+    t_kol = h_kol + 2
+    h = 1/(h_kol - 1)
+    tau = 1/(t_kol - 1)
 
-u_p = progonka(x, t, h, tau, u_a)
+    x = np.linspace(0, 1, h_kol)
+    t = np.linspace(0, 1, t_kol)
+    X_a, T_a, u_a = analytics(x, t)
 
-show_graph(X_a, T_a, u_a, u_p, h, tau)
+    u_p = progonka(x, t, h, tau, u_a)
+
+    show_graph(X_a, T_a, u_a, u_p, h, tau)
+
+    x_s.append(x)
+    u_last_layer_p.append(u_p[-1])
+    log_diff.append(np.log(np.max(abs(u_a - u_p))))
+    log_h.append(np.log(h))
+
+show_s_res(x_s, u_last_layer_p, u_a[-1])
+show_log(log_diff,log_h)
